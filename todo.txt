@@ -1,12 +1,9 @@
 make fishies easily customizable
 
 make fishing gameplay:
--throw out rod (click on screen, rod goes to click position)
--rod splashes and scares away fish in a certain radius (add repellor to flock)
--wait and the fish will come back (repellor has a lifetime, after which it will go away)
--eventually a fish will bite (add an attractor, if a fish is within a certain radius, they bite)
--if you press PULL in time, you will start pulling the fish in (horizontally across to the dock on the left)
+-rod splashes when you cast it
 -the rarer the fish, the longer it takes to pull in
 -while you are pulling it in, you have to try keep it in the middle of the screen
 -if the fish moves out of the center strip for too long, it will escape
 
+-if you catch fish, update fish book and add money

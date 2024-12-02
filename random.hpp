@@ -2,6 +2,7 @@
 #define RANDOM_HPP
 
 #include <SFML/Graphics.hpp>
+#include <glm/glm.hpp>
 #include <cstdint>
 #include <limits>
 #include <cmath>

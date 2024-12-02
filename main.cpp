@@ -1,4 +1,4 @@
-#include "fish.hpp"
+#include "fishBook.hpp"
 
 int main()
 {
@@ -7,6 +7,7 @@ int main()
     int fixedUpdateRate = 500;
     int maxFrameRate = 60;
     const float CAMERA_HEIGHT = 10.0f;
+    int numFish = 20;
     uint32_t randSeed = 42;
     // #################################
 
@@ -38,14 +39,18 @@ int main()
     flock.setWorldBounds(CAMERA_HEIGHT * aspectRatio, CAMERA_HEIGHT);
 
     // Add fish at random positions
-    for (int i = 0; i < 20; ++i)
+    for (int i = 0; i < numFish; ++i)
     {
         flock.addRandomFish();
     }
 
     // Init rod
-    glm::vec2 rodPosition = {0.0f, 0.0f};
-    float rodRadius = 0.1f;
+    Rod rod = Rod({-0.5f * CAMERA_HEIGHT * aspectRatio, 0.0f}, 0.1f, 3.0f);
+
+    // Init inventory
+    int coins = 0;
+    FishBook book;
+    book.entries.push_back(FishEntry("Default Fish", 1));
 
     // Init game clock
     sf::Clock gameClock;
@@ -61,7 +66,7 @@ int main()
             {
                 window.close();
             }
-            if (event.type == sf::Event::Resized)
+            else if (event.type == sf::Event::Resized)
             {
                 // Update UI view
                 view.setSize({(float)event.size.width, (float)event.size.height});
@@ -75,17 +80,41 @@ int main()
                 // Update world bounds
                 flock.setWorldBounds(CAMERA_HEIGHT * newAspectRatio, CAMERA_HEIGHT);
             }
-            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
+            else if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
             {
                 sf::Vector2i pixelCoords = {event.mouseButton.x, event.mouseButton.y};
                 sf::Vector2f coords = window.mapPixelToCoords(pixelCoords, cameraView);
-                rodPosition = {coords.x, coords.y};
-                flock.addAffector(Affector(false, rodPosition, 1.0f));
+                rod.setCastPos({coords.x, coords.y});
+                flock.addAffector(Affector(false, rod.castPos, 1.0f));
+            }
+            else if (event.type == sf::Event::KeyPressed)
+            {
+                if (event.key.code == sf::Keyboard::Space)
+                {
+                    flock.pull();
+                    rod.startPulling();
+                }
             }
         }
 
+        // Handle rod pulling
+        rod.update(dt);
+
+        if (rod.finishedPulling())
+        {
+            // Get pulled fish
+            std::vector<Fish> pulledFish = flock.finishPull();
+
+            // Update fish book
+            int newCoins = book.update(pulledFish);
+            coins += newCoins;
+
+            // Reset rod
+            rod.reset();
+        }
+
         // Update flock
-        flock.update(dt, rodPosition);
+        flock.update(dt, rod);
 
         // Update info text
         std::ostringstream ss;
@@ -94,6 +123,8 @@ int main()
         ss << "FPS: " << 1.0f / dt << "\n";
         ss << "Camera Height: " << CAMERA_HEIGHT << "\n";
         ss << "Camera Width: " << CAMERA_HEIGHT * aspectRatio << "\n";
+        ss << "# Fish: " << flock.allFish.size() << "\n";
+        ss << "Coins: " << coins << "\n";
         infoText.setString(ss.str());
 
         // Clear screen
@@ -104,13 +135,7 @@ int main()
         flock.render(window);
 
         // Draw rod
-        sf::CircleShape circle(rodRadius);
-        circle.setFillColor(sf::Color::Red);
-        circle.setOrigin(rodRadius, rodRadius);
-        circle.setPosition(rodPosition.x, rodPosition.y);
-
-        // Draw the ellipse
-        window.draw(circle);
+        rod.render(window);
 
         // Draw UI with default view
         window.setView(view);
