@@ -1,10 +1,20 @@
-make fishing gameplay:
--rod splashes when you cast it
+add UI for coins
+-coin symbol on left, number on right
+
+add UI for fish book:
+-add book button in top left corner
+-pressing the book button opens the fish book
+-press ESC, or click off, to close book
+-press arrow keys or pages to flip left/right
+-click on images to enlarge (display on center of screen)
+
+make more fishing gameplay:
 -the rarer the fish, the longer it takes to pull in
 -while you are pulling it in, you have to try keep it in the middle of the screen
 -if the fish moves out of the center strip for too long, it will escape
 
-add UI for coins
-add UI for fish book
+add JUICE:
+-rod splashes when you cast it
+-water shader
 
 add dock & player
