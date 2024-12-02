@@ -38,19 +38,27 @@ int main()
     Flock flock = Flock(randSeed, 1.0f / (float)fixedUpdateRate);
     flock.setWorldBounds(CAMERA_HEIGHT * aspectRatio, CAMERA_HEIGHT);
 
+    // Predefined fish types
+    std::vector<FishType> fishTypes = {
+        FishType("Tiny Swift", 0.1f, 1.0f, 2.5f, sf::Color::Blue, sf::Color::Cyan, sf::Color::Cyan, sf::Color::Green),
+        FishType("Medium Cruiser", 0.2f, 1.0f, 1.5f, {255, 127, 0}, sf::Color::Red, sf::Color::Red, sf::Color::Black),
+        FishType("Large Slowpoke", 0.3f, 1.2f, 0.7f, sf::Color::Green, {0, 200, 0}, {0, 200, 0}, sf::Color::Red)};
+
     // Add fish at random positions
     for (int i = 0; i < numFish; ++i)
     {
-        flock.addRandomFish();
+        flock.addRandomFish(fishTypes[randInt(randSeed, 3)]);
     }
 
     // Init rod
-    Rod rod = Rod({-0.5f * CAMERA_HEIGHT * aspectRatio, 0.0f}, 0.1f, 3.0f);
+    Rod rod = Rod({-0.5f * CAMERA_HEIGHT * aspectRatio, 0.0f}, 0.05f, 3.0f, 3.0f);
 
     // Init inventory
     int coins = 0;
     FishBook book;
-    book.entries.push_back(FishEntry("Default Fish", 1));
+    book.entries.push_back(FishEntry(fishTypes[0], 1));
+    book.entries.push_back(FishEntry(fishTypes[1], 3));
+    book.entries.push_back(FishEntry(fishTypes[2], 5));
 
     // Init game clock
     sf::Clock gameClock;

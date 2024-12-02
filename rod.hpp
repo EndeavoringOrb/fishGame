@@ -17,12 +17,20 @@ struct Rod
     float pullTimer = 0.0f;
     float pullTimeMax;
 
-    Rod(glm::vec2 _origin, float _radius, float _pullTimeMax)
+    float timeSinceHooked = 0.0f;
+    float timeBetweenHooks;
+
+    Rod(glm::vec2 _origin, float _radius, float _pullTimeMax, float _timeBetweenHooks)
         : origin(_origin),
           pos(_origin),
           castPos(_origin),
           radius(_radius),
-          pullTimeMax(_pullTimeMax) {}
+          pullTimeMax(_pullTimeMax),
+          timeBetweenHooks(_timeBetweenHooks) {}
+
+    bool readyToHook() {
+        return timeSinceHooked > timeBetweenHooks;
+    }
 
     void setCastPos(glm::vec2 _pos)
     {
@@ -45,6 +53,7 @@ struct Rod
             float t = pullTimer / pullTimeMax;
             pos = castPos + t * (origin - castPos);
         }
+        timeSinceHooked += dt;
     }
 
     bool finishedPulling()

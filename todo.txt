@@ -5,5 +5,3 @@ make fishing gameplay:
 -the rarer the fish, the longer it takes to pull in
 -while you are pulling it in, you have to try keep it in the middle of the screen
 -if the fish moves out of the center strip for too long, it will escape
-
--if you catch fish, update fish book and add money

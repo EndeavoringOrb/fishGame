@@ -5,14 +5,14 @@
 
 struct FishEntry
 {
-    std::string name;
+    FishType type;
     int coinValue;
 
     int numCaught = 0;
     bool unlocked = false;
 
-    FishEntry(std::string _name, int _coinValue)
-        : name(_name),
+    FishEntry(FishType _type, int _coinValue)
+        : type(_type),
           coinValue(_coinValue) {}
 };
 
@@ -28,7 +28,7 @@ struct FishBook
         {
             for (FishEntry &entry : entries)
             {
-                if (fish.name == entry.name)
+                if (fish.name == entry.type.name)
                 {
                     entry.numCaught++;
                     entry.unlocked = true;
@@ -45,7 +45,7 @@ struct FishBook
     {
         for (const FishEntry &entry : entries)
         {
-            if (fish.name == entry.name)
+            if (fish.name == entry.type.name)
             {
                 return entry.coinValue;
             }

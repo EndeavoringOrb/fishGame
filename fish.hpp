@@ -5,6 +5,36 @@
 #include "helperUtils.hpp"
 #include "rod.hpp"
 
+struct FishType
+{
+    std::string name;
+    float headSize;
+    float linkDistanceMultiplier;
+    float moveSpeed;
+    sf::Color bodyColor;
+    sf::Color finColor;
+    sf::Color tailColor;
+    sf::Color eyeColor;
+
+    // Constructor to make creating fish types easier
+    FishType(const std::string _name,
+             float _headSize,
+             float _linkDistanceMultiplier,
+             float _moveSpeed,
+             const sf::Color _bodyColor,
+             const sf::Color _finColor,
+             const sf::Color _tailColor,
+             const sf::Color _eyeColor)
+        : name(_name),
+          headSize(_headSize),
+          linkDistanceMultiplier(_linkDistanceMultiplier),
+          moveSpeed(_moveSpeed),
+          bodyColor(_bodyColor),
+          finColor(_finColor),
+          tailColor(_tailColor),
+          eyeColor(_eyeColor) {}
+};
+
 struct Fish
 {
     // Misc
@@ -18,11 +48,11 @@ struct Fish
     // Movement
     float moveSpeed;
     glm::vec2 forward = {-1.0f, 0.0f};
-    float maxTurnAngle;
+    float maxTurnAngle = 30.0f;
 
     // Hook
     bool hooked = false;
-    float pullTimer = 3.0f;
+    float pullTimer = 3.0f; // The fish will get off the hook if it isn't pulled within this amount of seconds
     bool pulled = false;
 
     // Fish Appearance
@@ -32,15 +62,22 @@ struct Fish
     int finIndex;
     float finSize = FLT_MIN;
 
-    // Info
-    std::string name = "Default Fish";
+    sf::Color bodyColor;
+    sf::Color finColor;
+    sf::Color tailColor;
+    sf::Color eyeColor;
 
-    Fish(float _linkDistance, float _moveSpeed, float _maxTurnAngle)
+    // Info
+    std::string name;
+
+    Fish(float _linkDistance, float _moveSpeed, sf::Color _bodyColor, sf::Color _finColor, sf::Color _tailColor, sf::Color _eyeColor, std::string _name)
         : linkDistance(_linkDistance),
           moveSpeed(_moveSpeed),
-          maxTurnAngle(_maxTurnAngle)
-    {
-    }
+          bodyColor(_bodyColor),
+          finColor(_finColor),
+          tailColor(_tailColor),
+          eyeColor(_eyeColor),
+          name(_name) {}
 
     // Set the head of the fish to pos and constrain fish
     void setHeadPosition(glm::vec2 pos)
@@ -184,32 +221,41 @@ struct Fish
         float bodyAngle = curvature();
         glm::vec2 finRight = jointRight(finIndex);
         float rightRotation = getRotation(jointRight(finIndex - 1) - finRight);
-        drawEllipse(window, {finRight.x, finRight.y}, {finSize * 0.75f, finSize * 0.75f * 0.5f}, rightRotation - normalFinRotation - bodyAngle * turnFinRotation);
+        drawEllipse(window,
+                    {finRight.x, finRight.y},
+                    {finSize * 0.75f, finSize * 0.75f * 0.5f},
+                    rightRotation - normalFinRotation - bodyAngle * turnFinRotation,
+                    finColor);
 
         glm::vec2 finLeft = jointLeft(finIndex);
         float leftRotation = getRotation(jointLeft(finIndex - 1) - finLeft);
-        drawEllipse(window, {finLeft.x, finLeft.y}, {finSize * 0.75f, finSize * 0.75f * 0.5f}, leftRotation + normalFinRotation - bodyAngle * turnFinRotation);
+        drawEllipse(window,
+                    {finLeft.x, finLeft.y},
+                    {finSize * 0.75f, finSize * 0.75f * 0.5f},
+                    leftRotation + normalFinRotation - bodyAngle * turnFinRotation,
+                    finColor);
 
         // Render tail fin
         int lastIdx = points.size() - 1;
         glm::vec2 lastPoint = points[lastIdx];
         glm::vec2 tailPoint = lastPoint - jointForward(lastIdx) * linkDistance;
         glm::vec2 tailMovePoint = tailPoint + (jointRight(lastIdx) - lastPoint) * 3.0f * curvature();
-        drawSmoothFillConvex({lastPoint, tailPoint, tailMovePoint}, window, sf::Color::Cyan);
+        drawSmoothFillConvex(
+            {lastPoint, tailPoint, tailMovePoint},
+            window,
+            tailColor);
         drawSmoothLine({lastPoint, tailPoint, tailMovePoint}, window, true);
 
         // Render body
-        drawSmoothFillTube(outlinePoints, window, sf::Color::Blue);
-
-        // Render outline
-        drawSmoothLine(outlinePoints, window, true);
+        drawSmoothFillTube(outlinePoints, window, bodyColor);
+        drawSmoothLine(outlinePoints, window, true); // Body outline
 
         // Render eyes
         glm::vec2 rightEyePos = rotate(forward * sizes[0] * 0.5f, 90) + points[0];
         glm::vec2 leftEyePos = rotate(forward * sizes[0] * 0.5f, -90) + points[0];
         sf::CircleShape circle;
         circle.setRadius(eyeRadius);
-        circle.setFillColor(sf::Color::Green);
+        circle.setFillColor(eyeColor);
         circle.setOrigin(eyeRadius, eyeRadius);
         circle.setPosition({rightEyePos.x, rightEyePos.y});
         window.draw(circle);
@@ -456,17 +502,18 @@ struct Flock
     }
 
     // Creates a fish with random traits, then adds it to the flock
-    void addRandomFish()
+    // Method to add a random fish of a specific type
+    void addRandomFish(const FishType &fishType)
     {
         float aspectRatio = worldWidth / worldHeight;
         float x = randFloat(randSeed) * worldHeight * aspectRatio - (worldHeight * aspectRatio / 2);
         float y = randFloat(randSeed) * worldHeight - (worldHeight / 2);
 
-        float headSize = 0.15f;
-        float linkDistance = headSize * (randFloat(randSeed) * 1.0f + 1.0f);
-        float moveSpeed = randFloat(randSeed) * 3.0f + 0.5f;
+        float headSize = fishType.headSize;
+        float linkDistance = headSize * (randFloat(randSeed) * 1.0f + 1.0f) * fishType.linkDistanceMultiplier;
+        float moveSpeed = fishType.moveSpeed + (randFloat(randSeed) * 1.0f - 0.5f);
 
-        auto fish = std::make_unique<Fish>(linkDistance, moveSpeed, 30.0f);
+        auto fish = std::make_unique<Fish>(linkDistance, moveSpeed, fishType.bodyColor, fishType.finColor, fishType.tailColor, fishType.eyeColor, fishType.name);
         fish->randSeed = PCG_Hash(randSeed); // Give each fish a unique seed
 
         // Add joints to create the fish body
@@ -491,7 +538,11 @@ struct Flock
             step(fixedDt);
             if (rod.cast)
             {
-                hookFish(rod.pos);
+                bool hooked = hookFish(rod.pos, rod.readyToHook());
+                if (hooked)
+                {
+                    rod.timeSinceHooked = 0.0f;
+                }
             }
         }
     }
@@ -536,7 +587,7 @@ struct Flock
         }
     }
 
-    void hookFish(glm::vec2 rodPosition)
+    bool hookFish(glm::vec2 rodPosition, bool readyToHook)
     {
         // If a fish has already been hooked, update that fish
         for (auto &fish : allFish)
@@ -544,8 +595,12 @@ struct Flock
             if (fish->hooked)
             {
                 fish->setHeadPosition(rodPosition);
-                return;
+                return true;
             }
+        }
+
+        if (!readyToHook) {
+            return false;
         }
 
         // Otherwise, check if a fish can be hooked
@@ -562,9 +617,11 @@ struct Flock
 
                 // Update fish position
                 fish->setHeadPosition(rodPosition);
-                return;
+                return true;
             }
         }
+
+        return false;
     }
 
     // Render the flock
