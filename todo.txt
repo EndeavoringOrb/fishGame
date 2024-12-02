@@ -1,7 +1,10 @@
-make fishies easily customizable
-
 make fishing gameplay:
 -rod splashes when you cast it
 -the rarer the fish, the longer it takes to pull in
 -while you are pulling it in, you have to try keep it in the middle of the screen
 -if the fish moves out of the center strip for too long, it will escape
+
+add UI for coins
+add UI for fish book
+
+add dock & player
