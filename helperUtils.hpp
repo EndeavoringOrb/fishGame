@@ -318,4 +318,41 @@ void drawEllipse(sf::RenderWindow &window,
     window.draw(circle);
 }
 
+void drawArc(sf::RenderWindow &window, sf::Vector2f origin, float startAngle, float stopAngle, float radius, sf::Color color = sf::Color::White, int segments = 32)
+{
+    // Ensure start and stop angles are in the correct order
+    if (startAngle > stopAngle)
+    {
+        std::swap(startAngle, stopAngle);
+    }
+
+    // Convert degrees to radians
+    float startRad = startAngle * deg2rad;
+    float stopRad = stopAngle * deg2rad;
+
+    // Create a list of points to draw the arc
+    std::vector<sf::Vertex> arcPoints;
+
+    // Calculate points along the arc
+    for (int i = 0; i <= segments; ++i)
+    {
+        // Interpolate the angle
+        float t = static_cast<float>(i) / segments;
+        float currentAngle = startRad + t * (stopRad - startRad);
+
+        // Calculate point on the arc
+        float x = origin.x + radius * std::cos(currentAngle);
+        float y = origin.y + radius * std::sin(currentAngle);
+
+        // Add point to the arc
+        arcPoints.push_back(sf::Vertex(sf::Vector2f(x, y), color));
+    }
+
+    // Draw the arc as a series of connected lines
+    if (!arcPoints.empty())
+    {
+        window.draw(arcPoints.data(), arcPoints.size(), sf::LineStrip);
+    }
+}
+
 #endif

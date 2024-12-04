@@ -1,4 +1,5 @@
 #include "fishBook.hpp"
+#include "ripple.hpp"
 
 int main()
 {
@@ -60,6 +61,9 @@ int main()
     book.entries.push_back(FishEntry(fishTypes[1], 3));
     book.entries.push_back(FishEntry(fishTypes[2], 5));
 
+    // Init ripples
+    std::vector<Ripple> ripples;
+
     // Init game clock
     sf::Clock gameClock;
 
@@ -92,6 +96,7 @@ int main()
             {
                 sf::Vector2i pixelCoords = {event.mouseButton.x, event.mouseButton.y};
                 sf::Vector2f coords = window.mapPixelToCoords(pixelCoords, cameraView);
+                ripples.push_back(Ripple(32, coords, 3.0f, 1.0f, randSeed));
                 rod.setCastPos({coords.x, coords.y});
                 flock.addAffector(Affector(false, rod.castPos, 1.0f));
             }
@@ -102,6 +107,16 @@ int main()
                     flock.pull();
                     rod.startPulling();
                 }
+            }
+        }
+
+        // Update ripples
+        for (int i = ripples.size() - 1; i >= 0; i--)
+        {
+            ripples[i].update(dt);
+            if (ripples[i].done())
+            {
+                ripples.erase(ripples.begin() + i);
             }
         }
 
@@ -141,6 +156,12 @@ int main()
         // Draw fish with camera view
         window.setView(cameraView);
         flock.render(window);
+
+        // Draw ripples
+        for (Ripple &ripple : ripples)
+        {
+            ripple.render(window);
+        }
 
         // Draw rod
         rod.render(window);
